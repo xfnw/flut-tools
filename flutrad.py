@@ -32,14 +32,22 @@ if __name__ == '__main__':
         color = '00FF00'
 
     if len(sys.argv) > 2:
-        scale = MIDY//float(sys.argv[2])
+        bgcolor = sys.argv[2]
+    else:
+        bgcolor = '000000'
+
+    if len(sys.argv) > 3:
+        scale = MIDY//float(sys.argv[3])
     else:
         scale = MIDY//6
 
-    if len(sys.argv) > 3:
-        graph(l(sys.argv[3]),color=color, scale=scale)
+    if len(sys.argv) > 4:
+        graph(l(sys.argv[4]),color=color, scale=scale)
     else:
+        out = lambda t: 0
         while True:
             inp = input()
-            graph(l(inp),color=color, scale=scale)
+            graph(out,color=bgcolor, scale=scale)
+            out = (lambda t: 0) if len(inp) == 0 else l(inp)
+            graph(out,color=color, scale=scale)
 

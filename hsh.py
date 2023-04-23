@@ -2,12 +2,14 @@
 
 from flutrad import *
 
-color='00FF00'
 if len(sys.argv) > 1:
     color=sys.argv[1]
-bgcolor='0'
+else:
+    color='00FF00'
 if len(sys.argv) > 2:
     bgcolor=sys.argv[2]
+else:
+    bgcolor='000000'
 
 out = lambda t: 0
 
