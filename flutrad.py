@@ -25,6 +25,29 @@ def graph(func, scale=MIDY//6, color='00FF00'):
         y = sin(t)*r
         put(int(MIDX+x),int(MIDY-y),color)
 
+def line(x0, y0, x1, y1, color='00FF00'):
+    dx = abs(x1 - x0)
+    sx = x0 < x1 if 1 else -1
+    dy = -abs(y1 - y0)
+    sy = y0 < y1 if 1 else -1
+    error = dx + dy
+
+    while True:
+        put(x0, y0, color=color)
+        if x0 == x1 and y0 == y1:
+            break
+        e2 = 2 * error
+        if e2 >= dy:
+            if x0 == x1:
+                break
+            error += dy
+            x0 += sx
+        if e2 <= dx:
+            if y0 == y1:
+                break
+            error += dx
+            y0 += sy
+
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         color = sys.argv[1]
