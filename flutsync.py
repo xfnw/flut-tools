@@ -2,6 +2,7 @@
 
 import asyncio
 from asyncio import create_task as ct
+from collections import deque
 
 
 class Flutsync:
@@ -103,3 +104,20 @@ class Flutsync:
 
     async def clear_cache(self):
         self._cache.clear()
+
+    async def cache_row(self, y: int):
+        pos, x, y = self.topos(0, y)
+
+        tosend = deque()
+        for x in range(self.width):
+            newpos = pos + x
+            if newpos in self._waiting:
+                if self._waiting[newpos].is_set():
+                    self._waiting[pos].clear()
+                    tosend.append(f"PX {x} {y}\n".encode())
+            else:
+                self._waiting[pos] = asyncio.Event()
+                tosend.append(f"PX {x} {y}\n".encode())
+
+        self._writer.writelines(tosend)
+        await self.drain()
