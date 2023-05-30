@@ -25,7 +25,7 @@ class Flutsync:
         self._connected.set()
 
     async def send(self, message):
-        self._writer.write((message+'\n').encode())
+        self._writer.write((message + "\n").encode())
         await self._writer.drain()
 
     async def _pingloop(self):
@@ -45,10 +45,13 @@ class Flutsync:
                 case b"PX":
                     ct(self._handle_px(params))
                 case unknown:
-                    print("unknown command: ", unknown)
+                    print("unknown command", unknown)
 
     async def _handle_size(self, params):
-        pass
+        width = int(params[0])
+        height = int(params[1])
+
+        self.width, self.height = width, height
 
     async def _handle_px(self, params):
         pass
