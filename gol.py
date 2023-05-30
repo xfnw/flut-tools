@@ -31,18 +31,18 @@ async def gol(flut):
         await flut.cache_row(0)
 
         for y in range(flut.height):
-            print("row", y)
+            # print("row", y)
             await flut.cache_row(y + 1)
             for x in range(flut.width):
                 num = await neighbors(flut, x, y)
 
                 if await flut.get(x, y) == ON:
                     if not (num == 2 or num == 3):
-                        print(f"{x},{y} dies")
+                        # print(f"{x},{y} dies")
                         await flut.set(x, y, OFF, cache=False)
                 else:
                     if num == 3:
-                        print(f"{x},{y} is born")
+                        # print(f"{x},{y} is born")
                         await flut.set(x, y, ON, cache=False)
 
 
