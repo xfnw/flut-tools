@@ -58,13 +58,15 @@ class Flutsync:
         self.has_size.set()
 
     def topos(self, x: int, y: int):
-        return (y % self.height) * self.width + (x % self.width)
+        y = (y % self.height)
+        x = (x % self.width)
+        return y * self.width + x, x, y
 
     async def _handle_px(self, params: list):
         x = int(params[0])
         y = int(params[1])
         color = int(params[2], 16)
-        pos = self.topos(x, y)
+        pos, x, y = self.topos(x, y)
 
         self._cache[pos] = color
 
@@ -72,7 +74,7 @@ class Flutsync:
             self._waiting[pos].set()
 
     async def get(self, x: int, y: int, cache: bool = True) -> int:
-        pos = self.topos(x, y)
+        pos, x, y = self.topos(x, y)
 
         if not (cache and pos in self._cache):
             if pos in self._waiting:
@@ -89,9 +91,12 @@ class Flutsync:
         return self._cache[pos]
 
     async def set(self, x: int, y: int, color: int, cache: bool = True):
-        pos = self.topos(x, y)
+        pos, x, y = self.topos(x, y)
 
         if cache:
             self._cache[pos] = color
 
         await self.send(f"PX {x} {y} {color:06x}")
+
+    async def clear_cache(self):
+        self._cache.clear()

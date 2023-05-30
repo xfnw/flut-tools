@@ -16,7 +16,7 @@ async def getsomepixels(flut):
 
 async def testme():
     flut = flutsync.Flutsync(host, port)
-    asyncio.create_task(flut.connect())
+    await flut.connect()
     asyncio.create_task(getsomepixels(flut))
     await flut.loop()
 
