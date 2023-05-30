@@ -15,7 +15,7 @@ class Flutsync:
         self.height = 768
         self._cache = {}
         self._waiting = {}
-        self.ttl = 32
+        self.pingtime = 32
 
     async def connect(self):
         self._reader, self._writer = await asyncio.open_connection(
@@ -24,8 +24,18 @@ class Flutsync:
 
         self._connected.set()
 
+    async def send(self, message):
+        self._writer.write((message+'\n').encode())
+        await self._writer.drain()
+
+    async def _pingloop(self):
+        while True:
+            await asyncio.sleep(self.pingtime)
+            await self.send("PING")
+
     async def loop(self):
         await self._connected.wait()
+        ct(self._pingloop())
 
         while line := await self._reader.readline():
             params = line.split()
@@ -36,3 +46,9 @@ class Flutsync:
                     ct(self._handle_px(params))
                 case unknown:
                     print("unknown command: ", unknown)
+
+    async def _handle_size(self, params):
+        pass
+
+    async def _handle_px(self, params):
+        pass
