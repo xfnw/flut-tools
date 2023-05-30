@@ -13,9 +13,10 @@ class Flutsync:
         self.pingtime = 32
         self._reader = None
         self._writer = None
-        self._connected = asyncio.Event()
         self._cache = {}
         self._waiting = {}
+        self._connected = asyncio.Event()
+        self.has_size = asyncio.Event()
 
     async def connect(self):
         self._reader, self._writer = await asyncio.open_connection(
@@ -54,6 +55,7 @@ class Flutsync:
         height = int(params[1])
 
         self.width, self.height = width, height
+        self.has_size.set()
 
     def topos(self, x: int, y: int):
         return (y % self.height) * self.width + (x % self.width)
