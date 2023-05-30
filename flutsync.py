@@ -63,13 +63,35 @@ class Flutsync:
     async def _handle_px(self, params: list):
         x = int(params[0])
         y = int(params[1])
-        color = int(params[3], 16)
-        pos = topos(x, y)
+        color = int(params[2], 16)
+        pos = self.topos(x, y)
 
         self._cache[pos] = color
 
         if pos in self._waiting:
             self._waiting[pos].set()
 
-    async def get(self, x: int, y: int, cached: bool=True):
-        pass
+    async def get(self, x: int, y: int, cache: bool = True) -> int:
+        pos = self.topos(x, y)
+
+        if not (cache and pos in self._cache):
+            if pos in self._waiting:
+                if self._waiting[pos].is_set():
+                    self._waiting[pos].clear()
+                    await self.send(f"PX {x} {y}")
+                # else there is currently a pending request
+                # for this pixel, no need to send another
+            else:
+                self._waiting[pos] = asyncio.Event()
+                await self.send(f"PX {x} {y}")
+            await self._waiting[pos].wait()
+
+        return self._cache[pos]
+
+    async def set(self, x: int, y: int, color: int, cache: bool = True):
+        pos = self.topos(x, y)
+
+        if cache:
+            self._cache[pos] = color
+
+        await self.send(f"PX {x} {y} {color:06x}")
