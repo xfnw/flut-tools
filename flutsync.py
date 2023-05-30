@@ -120,4 +120,4 @@ class Flutsync:
                 tosend.append(f"PX {x} {y}\n".encode())
 
         self._writer.writelines(tosend)
-        await self.drain()
+        await self._writer.drain()
