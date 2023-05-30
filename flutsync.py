@@ -24,7 +24,7 @@ class Flutsync:
 
         self._connected.set()
 
-    async def send(self, message):
+    async def send(self, message: str):
         self._writer.write((message + "\n").encode())
         await self._writer.drain()
 
@@ -47,16 +47,16 @@ class Flutsync:
                 case unknown:
                     print("unknown command", unknown)
 
-    async def _handle_size(self, params):
+    async def _handle_size(self, params: list):
         width = int(params[0])
         height = int(params[1])
 
         self.width, self.height = width, height
 
-    def topos(self, x, y):
+    def topos(self, x: int, y: int):
         return (y % self.height) * self.width + (x % self.width)
 
-    async def _handle_px(self, params):
+    async def _handle_px(self, params: list):
         x = int(params[0])
         y = int(params[1])
         color = int(params[3], 16)
@@ -66,3 +66,6 @@ class Flutsync:
 
         if pos in self._waiting:
             self._waiting[pos].set()
+
+    async def get(self, x: int, y: int, cached: bool=True):
+        pass
