@@ -29,6 +29,9 @@ class Flutsync:
         self._writer.write((message + "\n").encode())
         await self._writer.drain()
 
+    async def drain(self):
+        await self._writer.drain()
+
     async def _pingloop(self):
         while True:
             # continually ask for the size, as there is no
@@ -58,8 +61,8 @@ class Flutsync:
         self.has_size.set()
 
     def topos(self, x: int, y: int):
-        y = (y % self.height)
-        x = (x % self.width)
+        y = y % self.height
+        x = x % self.width
         return y * self.width + x, x, y
 
     async def _handle_px(self, params: list):
