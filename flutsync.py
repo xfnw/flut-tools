@@ -30,8 +30,10 @@ class Flutsync:
 
     async def _pingloop(self):
         while True:
+            # continually ask for the size, as there is no
+            # standard keep-alive command
+            await self.send("SIZE")
             await asyncio.sleep(self.pingtime)
-            await self.send("PING")
 
     async def loop(self):
         await self._connected.wait()
