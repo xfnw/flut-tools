@@ -25,7 +25,11 @@ async def neighbors(flut, x, y):
 async def gol(flut):
     await flut.has_size.wait()
 
+    iteration = 0
+
     while True:
+        print("iteration", iteration := iteration + 1)
+
         await flut.clear_cache()
         await flut.cache_row(-1)
         await flut.cache_row(0)
