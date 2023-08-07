@@ -77,8 +77,8 @@ class Flutsync:
         if pos in self._waiting:
             self._waiting[pos].set()
 
-    async def get(self, x: int, y: int, cache: bool = True) -> int:
-        pos, x, y = self.topos(x, y)
+    async def get(self, x: int, y: int, cache: bool = True, step: int = 1) -> int:
+        pos, x, y = self.topos(x * step, y * step)
 
         if not (cache and pos in self._cache):
             if pos in self._waiting:
@@ -94,13 +94,23 @@ class Flutsync:
 
         return self._cache[pos]
 
-    async def set(self, x: int, y: int, color: int, cache: bool = True):
-        pos, x, y = self.topos(x, y)
+    async def set(self, x: int, y: int, color: int, cache: bool = True, step: int = 1):
+        pos, x, y = self.topos(x * step, y * step)
 
         if cache:
             self._cache[pos] = color
 
-        await self.send(f"PX {x} {y} {color:06x}")
+        if step == 1:
+            await self.send(f"PX {x} {y} {color:06x}")
+            return
+
+        tosend = deque()
+        for x in range(x, x + step):
+            for y in range(y, y + step):
+                tosend.append(f"PX {x} {y} {color:06x}\n".encode())
+
+        self._writer.writelines(tosend)
+        await self._writer.drain()
 
     async def clear_cache(self):
         self._cache.clear()
