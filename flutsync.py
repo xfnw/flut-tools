@@ -61,9 +61,9 @@ class Flutsync:
         self.width, self.height = width, height
         self.has_size.set()
 
-    def topos(self, x: int, y: int):
-        y = y % self.height
-        x = x % self.width
+    def topos(self, x: int, y: int, step: int = 1):
+        y = (y % (self.height // step)) * step
+        x = (x % (self.width // step)) * step
         return y * self.width + x, x, y
 
     async def _handle_px(self, params: list):
@@ -78,7 +78,7 @@ class Flutsync:
             self._waiting[pos].set()
 
     async def get(self, x: int, y: int, cache: bool = True, step: int = 1) -> int:
-        pos, x, y = self.topos(x * step, y * step)
+        pos, x, y = self.topos(x, y, step=step)
 
         if not (cache and pos in self._cache):
             if pos in self._waiting:
@@ -95,7 +95,7 @@ class Flutsync:
         return self._cache[pos]
 
     async def set(self, x: int, y: int, color: int, cache: bool = True, step: int = 1):
-        pos, x, y = self.topos(x * step, y * step)
+        pos, x, y = self.topos(x, y, step=step)
 
         if cache:
             self._cache[pos] = color
@@ -105,9 +105,9 @@ class Flutsync:
             return
 
         tosend = deque()
-        for x in range(x, x + step):
-            for y in range(y, y + step):
-                tosend.append(f"PX {x} {y} {color:06x}\n".encode())
+        for fx in range(x, x + step):
+            for fy in range(y, y + step):
+                tosend.append(f"PX {fx} {fy} {color:06x}\n".encode())
 
         self._writer.writelines(tosend)
         await self._writer.drain()
@@ -116,7 +116,7 @@ class Flutsync:
         self._cache.clear()
 
     async def cache_row(self, y: int, step: int = 1):
-        pos, x, y = self.topos(0, y * step)
+        pos, x, y = self.topos(0, y, step=step)
 
         tosend = deque()
         for x in range(0, self.width, step):

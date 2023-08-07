@@ -38,7 +38,7 @@ async def gol(flut, step=1):
             # print("row", y)
             await flut.cache_row(y + 1, step=step)
             for x in range(flut.width // step):
-                num = await neighbors(flut, x, y)
+                num = await neighbors(flut, x, y, step=step)
 
                 if await flut.get(x, y, step=step) == ON:
                     if not (num == 2 or num == 3):
