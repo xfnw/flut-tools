@@ -105,11 +105,11 @@ class Flutsync:
     async def clear_cache(self):
         self._cache.clear()
 
-    async def cache_row(self, y: int):
-        pos, x, y = self.topos(0, y)
+    async def cache_row(self, y: int, step: int = 1):
+        pos, x, y = self.topos(0, y * step)
 
         tosend = deque()
-        for x in range(self.width):
+        for x in range(0, self.width, step):
             newpos = pos + x
             if newpos in self._waiting:
                 if self._waiting[newpos].is_set():
