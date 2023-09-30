@@ -8,10 +8,7 @@ if len(sys.argv) > 1:
     o = eval(sys.argv[1])
 
 for k, v in enumerate(o):
-    if len(v) == 2:
-        o[k] = v + (8,0)
-    elif len(v) == 3:
-        o[k] = v + (0,)
+    o[k] = v + (8,0)[len(v) - 2:]
 
 m = 128 / len(o)
 
