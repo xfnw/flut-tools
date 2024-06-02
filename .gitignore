@@ -1,0 +1,8 @@
+target
+a.out
+__pycache__
+*.orig
+*.pyc
+*.o
+*.f
+
