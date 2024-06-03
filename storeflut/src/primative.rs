@@ -1,14 +1,20 @@
-use std::marker::Unpin;
 use tokio::{
-    io::{self, AsyncBufReadExt, BufReader, Lines, ReadHalf, WriteHalf},
+    io::{self, AsyncBufReadExt, AsyncWriteExt, BufReader, Lines, ReadHalf, WriteHalf},
     net::TcpStream,
     sync::{
-        broadcast::{self, Sender},
+        broadcast::{self, error::RecvError, Sender},
         Mutex,
     },
 };
 
-use crate::protocol::Line;
+use crate::protocol::{Line, PXGetLine, PXSetLine};
+
+#[non_exhaustive]
+#[derive(Debug)]
+pub enum MemorySlabError {
+    RecvError(RecvError),
+    IoError(std::io::Error),
+}
 
 /// abstraction for a slab of memory mapped out of order onto a pixelflut server
 ///
@@ -18,15 +24,16 @@ use crate::protocol::Line;
 /// does not check bounds, all operations will wrap around after 2^21 bytes
 #[derive(Debug)]
 pub struct MemorySlab {
-    read: Lines<BufReader<ReadHalf<TcpStream>>>,
-    write: WriteHalf<TcpStream>,
+    read: Mutex<Lines<BufReader<ReadHalf<TcpStream>>>>,
+    write: Mutex<WriteHalf<TcpStream>>,
     broadcast: Sender<(u32, u32)>,
 }
 
 impl MemorySlab {
-    pub async fn new(stream: TcpStream) -> MemorySlab {
+    pub fn new(stream: TcpStream) -> MemorySlab {
         let (read, write) = io::split(stream);
-        let read = BufReader::new(read).lines();
+        let read = Mutex::new(BufReader::new(read).lines());
+        let write = Mutex::new(write);
         let (broadcast, _) = broadcast::channel(1024);
         MemorySlab {
             read,
@@ -34,18 +41,66 @@ impl MemorySlab {
             broadcast,
         }
     }
-    pub async fn start(&mut self) {
-        while let Some(line) = self.read.next_line().await.unwrap() {
+    pub async fn start(&self) {
+        while let Some(line) = self.read.lock().await.next_line().await.unwrap() {
             match line.parse() {
                 Ok(Line::PX(line)) => {
-                    println!("i got a {:?}", line);
-		    let loc = coord_to_num(line.x, line.y);
-		    self.broadcast.send((loc, line.color)).unwrap();
+                    let loc = coord_to_num(line.x, line.y);
+                    self.broadcast.send((loc, line.color)).unwrap();
                 }
                 Ok(_) => (),
                 Err(e) => println!("oh no {:?}", e),
             }
         }
+    }
+    pub async fn wait_for(&self, offset: u32) -> Result<u32, MemorySlabError> {
+        let mut rx = self.broadcast.subscribe();
+        loop {
+            let (rloc, color) = rx.recv().await.map_err(MemorySlabError::RecvError)?;
+            if rloc == offset {
+                return Ok(color);
+            }
+        }
+    }
+    pub async fn get_pixel(&self, offset: u32) -> Result<u32, MemorySlabError> {
+        let (x, y) = num_to_coord(offset);
+        let line = PXGetLine { x, y }.to_string();
+
+        self.write
+            .lock()
+            .await
+            .write_all(line.as_bytes())
+            .await
+            .map_err(MemorySlabError::IoError)?;
+
+        self.wait_for(offset).await
+    }
+    pub async fn set_pixel(&self, offset: u32, color: u32) -> Result<(), MemorySlabError> {
+        let (x, y) = num_to_coord(offset);
+        let line = PXSetLine { x, y, color }.to_string();
+
+        self.write
+            .lock()
+            .await
+            .write_all(line.as_bytes())
+            .await
+            .map_err(MemorySlabError::IoError)
+    }
+    pub async fn get_byte(&self, location: u32) -> Result<u8, MemorySlabError> {
+        let (offset, inner) = scramble(location);
+        let pixel = self.get_pixel(offset).await?;
+        let shifted = pixel >> (inner * 8);
+
+        Ok(shifted as u8)
+    }
+    pub async fn set_byte(&self, location: u32, value: u8) -> Result<(), MemorySlabError> {
+        let (offset, inner) = scramble(location);
+        let oldpixel = self.get_pixel(offset).await?;
+        let mask: u32 = !(((1 << 8) - 1) << (inner * 8));
+        let shifted = (value as u32) << (inner * 8);
+        let newcolor = (oldpixel & mask) | shifted;
+
+        self.set_pixel(offset, newcolor).await
     }
 }
 
