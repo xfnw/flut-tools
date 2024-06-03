@@ -19,7 +19,7 @@ pub enum MemorySlabError {
 /// abstraction for a slab of memory mapped out of order onto a pixelflut server
 ///
 /// it stores 2 MiB of data. to simplify implementation, and since most pixelflut servers
-/// are larger than this, it is hardcoded to use the top left roughly 1024x682 region
+/// are larger than this, it is hardcoded to use the top left roughly 1009x692 region
 ///
 /// does not check bounds, all operations will wrap around after 2^21 bytes
 #[derive(Debug)]
@@ -98,7 +98,7 @@ impl MemorySlab {
         let oldpixel = self.get_pixel(offset).await?;
         let mask: u32 = !(((1 << 8) - 1) << (inner * 8));
         let shifted = (value as u32) << (inner * 8);
-        let newcolor = (oldpixel & mask) | shifted;
+        let newcolor = oldpixel & mask | shifted;
 
         self.set_pixel(offset, newcolor).await
     }
@@ -112,11 +112,11 @@ pub fn scramble(location: u32) -> (u32, u32) {
 }
 
 pub fn num_to_coord(location: u32) -> (u32, u32) {
-    (location % 1024, location / 1024)
+    (location % 1009, location / 1009)
 }
 
 pub fn coord_to_num(x: u32, y: u32) -> u32 {
-    y * 1024 + x
+    y * 1009 + x
 }
 
 mod tests {

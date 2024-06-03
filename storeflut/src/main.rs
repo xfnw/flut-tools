@@ -14,7 +14,10 @@ async fn main() {
         newslab.start().await;
     });
     println!("{:?}", slab.get_pixel(1).await);
-    for i in 100000..100255 {
-	slab.set_byte(i, i as u8).await.unwrap();
+    for i in 0..256 {
+        slab.set_byte(i, i as u8).await.unwrap();
+    }
+    for i in 0..256 {
+        println!("{}", slab.get_byte(i).await.unwrap());
     }
 }
