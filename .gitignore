@@ -1,6 +1,7 @@
 target
 a.out
 __pycache__
+*.profraw
 *.orig
 *.pyc
 *.o
