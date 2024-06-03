@@ -11,10 +11,32 @@ impl MemorySlab {
     pub fn new() -> MemorySlab {
         MemorySlab {}
     }
-    pub fn scramble(location: u32) -> (u32, u32) {
-        let location = location.reverse_bits() >> 11;
-        let inner = location % 3;
-        let location = location / 3;
-        (location, inner)
+}
+
+pub fn scramble(location: u32) -> (u32, u32) {
+    let location = location.reverse_bits() >> 11;
+    let inner = location % 3;
+    let location = location / 3;
+    (location, inner)
+}
+
+pub fn num_to_coord(location: u32) -> (u32, u32) {
+    (location % 1024, location / 1024)
+}
+
+pub fn coord_to_num(x: u32, y: u32) -> u32 {
+    y * 1024 + x
+}
+
+mod tests {
+    use crate::primative::*;
+
+    #[test]
+    fn max_scramble() {
+    }
+
+    #[test]
+    fn coords_reversible() {
+        assert_eq!(num_to_coord(coord_to_num(621, 926)), (621, 926))
     }
 }
