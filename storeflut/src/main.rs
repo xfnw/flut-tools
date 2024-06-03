@@ -7,4 +7,5 @@ fn main() {
         "i parsed a {:?}!",
         "PX 1 2 cafe\n".parse::<protocol::Line>().unwrap()
     );
+    println!("big {:?}", primative::num_to_coord(699050));
 }
