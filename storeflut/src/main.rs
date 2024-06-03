@@ -14,10 +14,8 @@ async fn main() {
         newslab.start().await;
     });
     println!("{:?}", slab.get_pixel(1).await);
-    for i in 0..256 {
-        slab.set_byte(i, i as u8).await.unwrap();
-    }
-    for i in 0..256 {
-        println!("{}", slab.get_byte(i).await.unwrap());
-    }
+    slab.set(0, Vec::from_iter(0..=255).as_slice())
+        .await
+        .unwrap();
+    println!("{:?}", slab.get(0, 256).await.unwrap());
 }

@@ -1,3 +1,5 @@
+use futures::stream::{FuturesOrdered, FuturesUnordered};
+use futures::StreamExt;
 use tokio::{
     io::{self, AsyncBufReadExt, AsyncWriteExt, BufReader, Lines, ReadHalf, WriteHalf},
     net::TcpStream,
@@ -101,6 +103,29 @@ impl MemorySlab {
         let newcolor = oldpixel & mask | shifted;
 
         self.set_pixel(offset, newcolor).await
+    }
+    pub async fn get(&self, offset: u32, length: u32) -> Result<Vec<u8>, MemorySlabError> {
+        let stream: FuturesOrdered<_> = (offset..offset + length)
+            .map(|o| self.get_byte(o))
+            .collect();
+
+        stream
+            .collect::<Vec<Result<u8, MemorySlabError>>>()
+            .await
+            .into_iter()
+            .collect()
+    }
+    pub async fn set(&self, offset: u32, data: &[u8]) -> Result<(), MemorySlabError> {
+        let mut stream: FuturesUnordered<_> = data
+            .iter()
+            .enumerate()
+            .map(|(i, v)| self.set_byte(offset + i as u32, *v))
+            .collect();
+
+        while let Some(res) = stream.next().await {
+            res?;
+        }
+        Ok(())
     }
 }
 

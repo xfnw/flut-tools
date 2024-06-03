@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+futures = { version = "0.3.30", default-features = false, features = ["alloc", "std"] }
 tokio = { version = "1.38.0", default-features = false, features = ["tokio-macros", "net", "io-util", "io-std", "sync", "rt", "macros", "rt-multi-thread"] }
