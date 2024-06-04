@@ -23,7 +23,12 @@ pub enum MemorySlabError {
 /// it stores 2 MiB of data. to simplify implementation, and since most pixelflut servers
 /// are larger than this, it is hardcoded to use the top left roughly 1009x692 region
 ///
-/// does not check bounds, all operations will wrap around after 2^21 bytes
+/// since only whole pixels can be atomically written to, there is some unsoundness when
+/// concurrently writing to data that will end up in the same pixel. avoid doing writes
+/// spanning more than 1/3rd of the 2 MiB buffer as that is when colors wrap around
+///
+/// does not check bounds, will start doing weird things that depending on which
+/// features are enabled after 2^21 bytes
 #[derive(Debug)]
 pub struct MemorySlab {
     read: Mutex<Lines<BufReader<ReadHalf<TcpStream>>>>,
@@ -129,10 +134,17 @@ impl MemorySlab {
     }
 }
 
+#[cfg(feature = "scramble")]
 pub fn scramble(location: u32) -> (u32, u32) {
     let location = location.reverse_bits() >> 11;
     let inner = location % 3;
     let location = location / 3;
+    (location, inner)
+}
+#[cfg(not(feature = "scramble"))]
+pub fn scramble(location: u32) -> (u32, u32) {
+    let inner = location / 699051;
+    let location = location % 699051;
     (location, inner)
 }
 

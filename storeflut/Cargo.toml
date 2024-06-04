@@ -9,5 +9,8 @@ futures = { version = "0.3.30", default-features = false, features = ["alloc", "
 nbd-async = "0.6.0"
 tokio = { version = "1.38.0", default-features = false, features = ["tokio-macros", "net", "io-util", "io-std", "sync", "rt", "macros", "rt-multi-thread"] }
 
+[features]
+scramble = []
+
 [[bin]]
 name = "flutblock"
