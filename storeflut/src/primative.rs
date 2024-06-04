@@ -1,5 +1,6 @@
 use futures::stream::{FuturesOrdered, FuturesUnordered};
 use futures::StreamExt;
+use std::time::Duration;
 use tokio::{
     io::{self, AsyncBufReadExt, AsyncWriteExt, BufReader, Lines, ReadHalf, WriteHalf},
     net::TcpStream,
@@ -7,6 +8,7 @@ use tokio::{
         broadcast::{self, error::RecvError, Sender},
         Mutex,
     },
+    time::sleep,
 };
 
 use crate::protocol::{Line, PXGetLine, PXSetLine};
@@ -48,6 +50,16 @@ impl MemorySlab {
             broadcast,
         }
     }
+    /// periodically send SIZE to keep the connection alive
+    pub async fn keepalive(&self) {
+        let delay = Duration::from_secs(30);
+        loop {
+            sleep(delay).await;
+
+            self.write.lock().await.write_all(b"SIZE\n").await.unwrap();
+        }
+    }
+    /// reads input and broadcasts events for wait_for
     pub async fn start(&self) {
         while let Some(line) = self.read.lock().await.next_line().await.unwrap() {
             match line.parse() {

@@ -72,6 +72,10 @@ async fn main() {
     tokio::spawn(async move {
         newslab.start().await;
     });
+    let newslab = slab.clone();
+    tokio::spawn(async move {
+        newslab.keepalive().await;
+    });
     let dev = FlutDev { slab };
     serve_local_nbd(path, 512, 4096, false, dev).await.unwrap();
 }
