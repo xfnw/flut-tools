@@ -11,14 +11,14 @@ struct FbDev {
 #[async_trait(?Send)]
 impl BlockDevice for FbDev {
     async fn read(&mut self, offset: u64, buf: &mut [u8]) -> Result<()> {
-	let offset = offset as usize;
-	buf.copy_from_slice(&self.data[offset..offset + buf.len()]);
+        let offset = offset as usize;
+        buf.copy_from_slice(&self.data[offset..offset + buf.len()]);
         Ok(())
     }
     async fn write(&mut self, offset: u64, buf: &[u8]) -> Result<()> {
         let offset = offset as usize;
-	self.data[offset..offset + buf.len()].copy_from_slice(buf);
-	Ok(())
+        self.data[offset..offset + buf.len()].copy_from_slice(buf);
+        Ok(())
     }
 }
 
@@ -39,7 +39,7 @@ async fn main() {
 
     // turn off cursor blinking in tty
     print!("\033[?17;127c");
-    
+
     let dev = FbDev { data };
     serve_local_nbd(nbdpath, 512, size / 512, false, dev)
         .await
