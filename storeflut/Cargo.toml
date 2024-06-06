@@ -6,6 +6,8 @@ edition = "2021"
 [dependencies]
 async-trait = "0.1.80"
 futures = { version = "0.3.30", default-features = false, features = ["alloc", "std"] }
+linuxfb = "0.3.1"
+memmap = "0.7.0"
 nbd-async = "0.6.0"
 tokio = { version = "1.38.0", default-features = false, features = ["tokio-macros", "net", "io-util", "io-std", "sync", "rt", "macros", "rt-multi-thread", "time"] }
 
@@ -14,3 +16,6 @@ scramble = []
 
 [[bin]]
 name = "flutblock"
+
+[[bin]]
+name = "fbblock"
