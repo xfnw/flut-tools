@@ -5,10 +5,7 @@ use std::{
 };
 use tokio::net::TcpStream;
 
-use crate::primative::MemorySlab;
-
-pub mod primative;
-pub mod protocol;
+use storeflut::primative::MemorySlab;
 
 #[tokio::main]
 async fn main() {
