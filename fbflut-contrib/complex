@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from PIL import Image
-import sys, math
+import sys, cmath
 
 def rgb2hex(r, g, b, *a):
     if len(a) > 0 and a[0] == 0:
@@ -26,7 +26,9 @@ for y in range(h):
     for x in range(w):
         if (hex := rgb2hex(*p[y*w+x])) is not None:
             c = tocomplex(x, y, w, h)
-            if c == 0:
+            try:
+                r = f(c)
+            except:
                 continue
-            nx, ny = tocoords(f(c), 1366, 768)
+            nx, ny = tocoords(r, 1366, 768)
             print(f"PX {int(nx)} {int(ny)} {hex}")
