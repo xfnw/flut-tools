@@ -10,7 +10,7 @@ def rgb2hex(r, g, b, *a):
 
 i = Image.open(sys.argv[1],'r')
 w, h = i.size
-p = list(i.getdata())
+p = i.get_flattened_data()
 
 xx = list(range(w))
 yy = list(range(h))

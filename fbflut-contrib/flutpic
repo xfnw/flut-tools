@@ -13,7 +13,7 @@ if inp == '-':
     inp = sys.stdin.buffer
 i = Image.open(inp,'r')
 w, h = i.size
-p = list(i.getdata())
+p = i.get_flattened_data()
 
 for y in range(h):
     for x in range(w):
