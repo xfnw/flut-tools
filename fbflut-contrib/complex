@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+
+from PIL import Image
+import sys
+
+def rgb2hex(r, g, b, *a):
+    if len(a) > 0 and a[0] == 0:
+        return None
+    return '{:02x}{:02x}{:02x}'.format(r,g,b)
+
+def tocomplex(x, y, w, h):
+    return complex(x-w/2, y-h/2)
+
+def tocoords(c, w, h):
+    return c.real+w/2, c.imag+h/2
+
+inp = sys.argv[1]
+if inp == '-':
+    inp = sys.stdin.buffer
+i = Image.open(inp,'r')
+w, h = i.size
+p = list(i.getdata())
+f = eval("lambda z: "+sys.argv[2])
+
+for y in range(h):
+    for x in range(w):
+        if (hex := rgb2hex(*p[y*w+x])) is not None:
+            c = tocomplex(x, y, w, h)
+            if c == 0:
+                continue
+            nx, ny = tocoords(f(c), 1366, 768)
+            print(f"PX {int(nx)} {int(ny)} {hex}")
